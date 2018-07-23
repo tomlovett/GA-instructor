@@ -4,48 +4,41 @@ var baseUrl = 'http://localhost:4567/'
 
 function httpGet(url, callback) { // our helper function for HTTP GET requests
   var req = new XMLHttpRequest()
-  console.log('httpGet -> url: ', url)
   req.open('GET', url, true) // "true" means it is asynchronous
   req.addEventListener('load', function() {
-    callback(req.responseText) // a function we want to run when the request returns data
+    if (!req.responseText) {
+      return
+    }
+
+    var res = JSON.parse(req.responseText)
+    callback(res) // a function we want to run when the request returns data
   })
   req.send(null)
 }
 
 function search() {
+  clearMovies()
+
   var input = document.getElementsByTagName('input')[0]
-  var title = input.title
+  var title = input.value
+
+  if (!title) {
+    alert('Please enter a movie title.')
+    return
+  }
 
   var searchUrl = baseUrl + 'search/' + title
-
   httpGet(searchUrl, addMovie)
 }
 
-function addAllMovies(movies) {
-  console.log('addAllMovies')
-  clearMovies()
-
-  if (movies.Error) {
+function addMovie(movie) { // Advanced: Can we break this down into smaller functions?
+  if (!movie.Title) { // How does this boolean check work? What are we preventing?
     alert('No movies found!')
     return
   }
 
-  console.log('movies.length: ', movies.length)
+  saveMovieData(movie) // What happens when "addMovie" is called by "addFavorites"? Could this be improved?
 
-  if (movies.length > 1) {
-    var contentDiv = document.getElementById('content')
-
-    movies.forEach(function(movie) {
-      var movieElement = createMovieElement(movie)
-      contentDiv.appendChild(movieElement)
-    })
-  } else if (movies.length == 1) {
-    addMovie(movies)
-  }
-}
-
-function addMovie(movie) { // create movie element
-  console.log('addMovie')
   var contentDiv = document.getElementById('content')
   var movieElement = document.createElement('div')
   movieElement.className = 'movie'
@@ -53,7 +46,6 @@ function addMovie(movie) { // create movie element
   var titleText = "Title: " + movie.Title + " Year: " + movie.Year + " Director: " + movie.Director
   // Advanced: This is a bit clunky, no? Do a google search of "string interpolation" and think about how you could use that here.
   var titleElement = document.createTextNode(titleText)
-  // like button
 
   titleElement.onclick = function() { // Advanced: Could this be abstracted to a separate function?
     var detailText = "Plot: " + movie.Plot
@@ -75,9 +67,17 @@ function clearMovies() {
   }
 }
 
+function saveMovieData(movie) {
+  var saveButton = document.getElementById('save')
+
+  saveButton.setAttribute('data-imdbID', movie.imdbID)
+}
+
 function likeMovie(movie) {
-  console.log('likeMovie')
-  var likeUrl = baseUrl + 'favorite/' + movie.name + '/' + movie.oid
+  var saveButton = document.getElementById('save')
+  var imdbID = saveButton.getAttribute('data-imdbid')
+
+  var likeUrl = baseUrl + 'favorite/' + imdbID
 
   httpGet(likeUrl, alert('Movie saved!'))
 }
@@ -87,5 +87,18 @@ function likeMovie(movie) {
 function getFavorites() {
   var favoritesUrl = baseUrl + 'favorites'
 
-  httpGet(favoritesUrl, addAllMovies)
+  httpGet(favoritesUrl, addFavorites)
+}
+
+function addFavorites(movies) {
+  clearMovies()
+
+  if (movies.Error) {
+    alert('No favorites!')
+    return
+  }
+
+  movies.forEach(function(movie) {
+    addMovie(movie)
+  })
 }
