@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+
+  <head>
+    <title>Movie Buddie</title>
+    <!-- import our JavaScript file -->
+    <script type="text/javascript" src="./js/main.js"></script>
+  </head>
+
+  <body>
+    <div id="header">
+      <h2>Movie Buddie</h2>
+      <a class="main" href="#" onclick="clearMovies()">Main page</a>
+      <a class="favorites" href="#" onclick="getFavorites()">Favorites</a>
+    </div>
+
+    <div id="search">
+      <form>
+        <input type="text" placeholder="Movie title">
+        <button onclick="search()">Search</button>
+      </form>
+    </div>
+
+    <div id="content">
+      <!-- our search results and favorites will be added here -->
+    </div>
+  </body>
+
+</html>
